@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
 
+
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
@@ -36,9 +37,10 @@ class _MyHomePageState extends State<MyHomePage> {
   String verificationId;
   FirebaseAuth _auth = FirebaseAuth.instance;
 
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return  Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
@@ -56,7 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 SizedBox(height: 10.0),
                 RaisedButton(
-                    onPressed: verifyPhone,
+                    onPressed: () => verifyPhone(),
                     child: Text('Verify'),
                     textColor: Colors.white,
                     elevation: 7.0,
@@ -64,43 +66,56 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             )),
       ),
-      // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
   Future<void> verifyPhone() async {
-    final PhoneCodeAutoRetrievalTimeout autoRetrieve = (String verId) {
-      this.verificationId = verId;
-    }; // this will auto click the verification button
 
-    final PhoneCodeSent smsCodeSent = (String verId, [int forceCodeResend]) {
-      this.verificationId = verId;
-      smsCodeDialog(context).then((value) {
-        print("Signed In");
-      });
-    };
+    _auth.currentUser().then((user) async {
+      if (user != null) {
+        print("User is not null");
+        Navigator.of(context).pop();
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => DashboardPage(uid: user.uid,)),
+        );
+      } else {
 
-    final PhoneVerificationCompleted verificationCompleted =
-        (AuthCredential user) {
-      print('verified');
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => DashboardPage()),
-      );
-    };
+        final PhoneCodeAutoRetrievalTimeout autoRetrieve = (String verId) {
+          this.verificationId = verId;
+        }; // this will auto click the verification button
 
-    final PhoneVerificationFailed verificationFailed =
-        (AuthException expection) {
-      print(expection.message);
-    };
+        final PhoneCodeSent smsCodeSent =
+            (String verId, [int forceCodeResend]) {
+          this.verificationId = verId;
+          smsCodeDialog(context).then((value) {
+            print("Signed In");
+          });
+        };
 
-    await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: this.phoneNo,
-        timeout: const Duration(seconds: 5),
-        verificationCompleted: verificationCompleted,
-        verificationFailed: verificationFailed,
-        codeSent: smsCodeSent,
-        codeAutoRetrievalTimeout: autoRetrieve);
+        final PhoneVerificationCompleted verificationCompleted =
+            (AuthCredential user) {
+          print('verified');
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => DashboardPage()),
+          );
+        };
+
+        final PhoneVerificationFailed verificationFailed =
+            (AuthException expection) {
+          print(expection.message);
+        };
+
+        await FirebaseAuth.instance.verifyPhoneNumber(
+            phoneNumber: this.phoneNo,
+            timeout: const Duration(seconds: 5),
+            verificationCompleted: verificationCompleted,
+            verificationFailed: verificationFailed,
+            codeSent: smsCodeSent,
+            codeAutoRetrievalTimeout: autoRetrieve);
+      }
+    });
   }
 
   Future<bool> smsCodeDialog(BuildContext context) {
@@ -120,11 +135,17 @@ class _MyHomePageState extends State<MyHomePage> {
               new FlatButton(
                 child: Text('Done'),
                 onPressed: () {
-                  FirebaseAuth.instance.currentUser().then((user) {
+                  _auth.currentUser().then((user) {
                     if (user != null) {
+                      print("User is not null");
                       Navigator.of(context).pop();
-                      Navigator.of(context).pushReplacementNamed('/homepage');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => DashboardPage(uid: user.uid)),
+                      );
                     } else {
+                      print("User is null");
                       Navigator.of(context).pop();
                       signIn(smsCode);
 // Find the Scaffold in the widget tree and use it to show a SnackBar.
@@ -163,5 +184,10 @@ class _MyHomePageState extends State<MyHomePage> {
     }).catchError((e) {
       print(e);
     });
+
+
   }
+
+
+
 }

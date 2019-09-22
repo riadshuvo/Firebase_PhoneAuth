@@ -17,7 +17,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   getUid() {}
 
-  /*@override
+  @override
   void initState() {
     this.widget.uid = '';
     FirebaseAuth.instance.currentUser().then((val) {
@@ -29,7 +29,6 @@ class _DashboardPageState extends State<DashboardPage> {
     });
     super.initState();
   }
-*/
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
