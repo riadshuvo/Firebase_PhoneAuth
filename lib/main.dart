@@ -38,48 +38,66 @@ class _MyHomePageState extends State<MyHomePage> {
   FirebaseAuth _auth = FirebaseAuth.instance;
 
 
+
+  Scaffold homePage(){
+    _auth.currentUser().then((user){
+      setState(() {
+        uid = user.uid;
+      });
+    });
+
+    return Scaffold(
+        body: DashboardPage(uid: uid)
+    ) ;
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Container(
-            padding: EdgeInsets.all(25.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                TextField(
-                  decoration: InputDecoration(hintText: 'Enter Phone number'),
-                  onChanged: (value) {
-                    this.phoneNo = value;
-                  },
-                ),
-                SizedBox(height: 10.0),
-                RaisedButton(
-                    onPressed: () => verifyPhone(),
-                    child: Text('Verify'),
-                    textColor: Colors.white,
-                    elevation: 7.0,
-                    color: Colors.blue)
-              ],
-            )),
+      body: FutureBuilder(
+        future: FirebaseAuth.instance.currentUser(),
+        builder: (context, AsyncSnapshot<FirebaseUser> snapshot) {
+          if (snapshot.hasData) {
+
+            return homePage();
+          }
+          else {
+
+           return Center(
+              child: Container(
+                  padding: EdgeInsets.all(25.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      TextField(
+                        decoration: InputDecoration(hintText: 'Enter Phone number'),
+                        onChanged: (value) {
+                          this.phoneNo = value;
+                        },
+                      ),
+                      SizedBox(height: 10.0),
+                      RaisedButton(
+                          onPressed: () => verifyPhone(),
+                          child: Text('Verify'),
+                          textColor: Colors.white,
+                          elevation: 7.0,
+                          color: Colors.blue)
+                    ],
+                  )),
+           );
+
+        }
+        },
       ),
     );
   }
 
-  Future<void> verifyPhone() async {
 
-    _auth.currentUser().then((user) async {
-      if (user != null) {
-        print("User is not null");
-        Navigator.of(context).pop();
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => DashboardPage(uid: user.uid,)),
-        );
-      } else {
+  Future<void> verifyPhone() async {
 
         final PhoneCodeAutoRetrievalTimeout autoRetrieve = (String verId) {
           this.verificationId = verId;
@@ -96,10 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
         final PhoneVerificationCompleted verificationCompleted =
             (AuthCredential user) {
           print('verified');
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => DashboardPage()),
-          );
+
         };
 
         final PhoneVerificationFailed verificationFailed =
@@ -114,8 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
             verificationFailed: verificationFailed,
             codeSent: smsCodeSent,
             codeAutoRetrievalTimeout: autoRetrieve);
-      }
-    });
+
   }
 
   Future<bool> smsCodeDialog(BuildContext context) {
@@ -147,9 +161,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     } else {
                       print("User is null");
                       Navigator.of(context).pop();
-                      signIn(smsCode);
-// Find the Scaffold in the widget tree and use it to show a SnackBar.
-
+                      signIn();
                     }
                   });
                 },
@@ -159,19 +171,11 @@ class _MyHomePageState extends State<MyHomePage> {
         });
   }
 
-  signIn(String smsCode) async {
+  signIn() async {
     final AuthCredential credential = PhoneAuthProvider.getCredential(
       verificationId: verificationId,
       smsCode: smsCode,
     );
-
-    FirebaseAuth.instance.currentUser().then((val) {
-      setState(() {
-        this.uid = val.uid;
-      });
-    }).catchError((e) {
-      print(e);
-    });
 
     FirebaseAuth _auth = FirebaseAuth.instance;
     final FirebaseUser user =
@@ -185,9 +189,7 @@ class _MyHomePageState extends State<MyHomePage> {
       print(e);
     });
 
-
   }
-
 
 
 }

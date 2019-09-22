@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:firebase_phone_auth/main.dart';
 import 'package:flutter/material.dart';
-
 import 'package:firebase_auth/firebase_auth.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -32,10 +31,6 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-        appBar: new AppBar(
-          title: new Text('Dashboard'),
-          centerTitle: true,
-        ),
         body: Center(
           child: Container(
             child: new Column(
